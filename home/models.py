@@ -5,8 +5,35 @@ from django.contrib.auth.models import User
 
 from django.db import models
 
+from django.utils import timezone
+
+import json
+
+from django.core.validators import MinValueValidator, MaxValueValidator
+
+from django.contrib.auth.models import Group, Permission
+
+from django.utils.translation import gettext as _
+
+from django.contrib.auth.models import AbstractUser
+
 # chuẩn bị dataset cho model
 mental_disorder_df = pd.read_csv('static/mentalDisorder.csv')
+
+# Dùng khi bạn chỉ cần lưu thời gian đặt khám đơn giản.
+class Appointment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    appointment_date = models.DateTimeField()
+
+    # bảng chính bạn nên dùng trong hệ thống thực tế, vì nó mô tả đầy đủ luồng booking.
+class AppointmentData(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    doctor = models.ForeignKey(DoctorUser, on_delete=models.CASCADE)
+    email = models.CharField(max_length=150)
+    phone = models.CharField(max_length = 20)
+    appointmentDate = models.DateTimeField()
+    message = models.CharField(max_length = 1000)
+    status = models.CharField(max_length = 50, default = "Pending")
 
 class UserProfile(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

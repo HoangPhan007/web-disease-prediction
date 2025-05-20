@@ -1,15 +1,27 @@
 {% extends "login_base.html" %}
+{# Kế thừa (extends) template gốc "login_base.html" để dùng layout/chung từ đó #}
 
 {%block title%}Appointment History{%endblock title%}
+{# Định nghĩa block "title" để thay thế tiêu đề trang trên "login_base.html" thành "Appointment History" #}
 
 {%block body%}
+{# Bắt đầu block "body" để chèn nội dung chính của trang vào template gốc #}
 
 <div class="container my-4">
+    {# Div chứa toàn bộ nội dung chính, dùng class Bootstrap "container" và margin top-bottom (my-4) #}
 
     <div class="my-3 p-3 bg-white rounded box-shadow">
+        {# Div chứa bảng lịch sử cuộc hẹn, có margin (my-3), padding (p-3), nền trắng, bo góc và shadow #}
+        
         <h3 class="my-3 pb-2 mb-0">Appointment History</h3>
+        {# Tiêu đề nhỏ của phần, với margin trên dưới, padding dưới và margin bottom bằng 0 #}
+        
         <br>
+        {# Dòng xuống dòng để tạo khoảng cách #}
+
         <table class="table">
+            {# Bảng dùng class Bootstrap "table" để định dạng đẹp #}
+            
             <thead>
                 <tr>
                     <th>Appointment Date</th>
@@ -18,16 +30,31 @@
                     <th>Appointment Status</th>
                 </tr>
             </thead>
+            {# Phần đầu bảng định nghĩa các cột #}
+
             <tbody>
-                {% for app in appointment reversed%}
+                {% for app in appointment reversed %}
+                {# Vòng lặp for qua danh sách 'appointment' theo thứ tự ngược (mới nhất trước) #}
+                
                 <tr>
                     <td class="text-capitalize text-dark">Dr. {{ app.doctor.first_name }} {{ app.doctor.last_name }}</td>
+                    {# Cột tên bác sĩ, in hoa chữ cái đầu (text-capitalize) và màu chữ đen (text-dark) #}
+                    
                     <td>{{ app.appointmentDate.date }}</td>
+                    {# Cột ngày hẹn (lấy thuộc tính date trong appointmentDate) #}
+                    
                     <td>{{ app.doctor.expertise }}</td>
+                    {# Cột chuyên môn của bác sĩ #}
+                    
                     <td class="{% if app.status == 'Pending' %}text-danger{% else %}text-success{% endif %}">
                         <b>{{ app.status }}</b>
-                    </td>                    
+                    </td>
+                    {# Cột trạng thái cuộc hẹn:
+                        - Nếu trạng thái là 'Pending' thì chữ màu đỏ (text-danger)
+                        - Ngược lại màu xanh (text-success)
+                        - In đậm trạng thái #}
                 </tr>
+                
                 {% endfor %}
             </tbody>
         </table>
@@ -35,3 +62,4 @@
 </div>
 
 {%endblock body%}
+{# Kết thúc block body #}
