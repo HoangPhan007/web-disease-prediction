@@ -84,22 +84,22 @@ WSGI_APPLICATION = 'home.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Database sqlite3
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-DATABASES['default'] = dj_database_url.parse('postgresql://web_disease_db_user:JFWCKYPZ8BlsXZW1vzpQbXoixliOxDoi@dpg-d0mp2rre5dus738nfcr0-a.oregon-postgres.render.com/web_disease_db')
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+# DATABASES['default'] = dj_database_url.parse('postgresql://web_disease_db_user:JFWCKYPZ8BlsXZW1vzpQbXoixliOxDoi@dpg-d0mp2rre5dus738nfcr0-a.oregon-postgres.render.com/web_disease_db')
 
 # Database Postgres
-# DATABASES = {
-#     'default': dj_database_url.config(
-#         default=os.environ.get('DATABASE_URL'),
-#         conn_max_age=600,
-#         ssl_require=True  # cần cho Render
-#     )
-# }
+DATABASES = {
+    'default': dj_database_url.parse(
+        "postgresql://web_disease_db_5s5z_user:DBQdcplwSbTSiasJNIS40boaumJkDymo@dpg-d0mto6emcj7s739l2fr0-a.oregon-postgres.render.com/web_disease_db_5s5z",
+        conn_max_age=600
+    )
+}
+
 # DATABASES["default"] = dj_database_url.parse("postgresql://web_disease_db_user:JFWCKYPZ8BlsXZW1vzpQbXoixliOxDoi@dpg-d0mp2rre5dus738nfcr0-a.oregon-postgres.render.com/web_disease_db")
 
 
