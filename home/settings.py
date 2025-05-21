@@ -10,8 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import os
+from email.policy import default
 from pathlib import Path
 import dj_database_url
+from numpy.distutils.lib2def import DEFAULT_NM
 
 # postgresql://web_disease_db_user:JFWCKYPZ8BlsXZW1vzpQbXoixliOxDoi@dpg-d0mp2rre5dus738nfcr0-a.oregon-postgres.render.com/web_disease_db
 
@@ -82,21 +84,23 @@ WSGI_APPLICATION = 'home.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Database sqlite3
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+DATABASES['default'] = dj_database_url.parse('postgresql://web_disease_db_user:JFWCKYPZ8BlsXZW1vzpQbXoixliOxDoi@dpg-d0mp2rre5dus738nfcr0-a.oregon-postgres.render.com/web_disease_db')
 
 # Database Postgres
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
-        conn_max_age=600,
-        ssl_require=True  # cần cho Render
-    )
-}
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default=os.environ.get('DATABASE_URL'),
+#         conn_max_age=600,
+#         ssl_require=True  # cần cho Render
+#     )
+# }
+# DATABASES["default"] = dj_database_url.parse("postgresql://web_disease_db_user:JFWCKYPZ8BlsXZW1vzpQbXoixliOxDoi@dpg-d0mp2rre5dus738nfcr0-a.oregon-postgres.render.com/web_disease_db")
 
 
 # Password validation
