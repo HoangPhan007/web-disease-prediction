@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set VIRTUAL_ENV=D:\Phát\Nhập môn công nghệ phần mềm\Project 2\web-disease-prediction\venv
+set VIRTUAL_ENV=D:\aaa\WorkSpace_32\Software technology\web-disease-prediction\venv
 
 if not defined PROMPT set PROMPT=$P$G
 
