@@ -237,4 +237,6 @@ def mental_disorder(request):
     return render(request, 'mental_disorder_prediction.html',
                   {'form': form, 'user_name': request.user.first_name + " " + request.user.last_name})
 
-
+@login_required
+def health_prediction(request):
+    return render(request, 'health_test.html', {'user_name': request.user.first_name + " " + request.user.last_name})
