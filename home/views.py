@@ -25,7 +25,6 @@ mental_disorder_output_encoder = joblib.load('static/encoders/mental_disorder_ou
 class UserRegistrationForm(UserCreationForm):
     email = forms.EmailField()
 
-    # khởi tạo form
     class Meta:
         model = User
         fields = ['username', 'email', 'first_name', 'last_name', 'password1', 'password2']
@@ -68,7 +67,7 @@ def index(request):
 
 # function register call form Register
 def register(request):
-    if request.method == "POST":
+    if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
 
         try:
@@ -80,7 +79,6 @@ def register(request):
             messages.error(request, "Something went wrong. Try again!")
     else:
         form = UserRegistrationForm()
-
     return render(request, 'register.html', {'form': form})
 
 
