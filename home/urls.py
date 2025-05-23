@@ -30,4 +30,12 @@ urlpatterns = [
     path('logout', views.user_logout, name='logout'),
     path("health_prediction", views.health_prediction, name="health_prediction"),
     path('mental_disorder', views.mental_disorder, name="mental_disorder"),
+    path("fix_appointment", views.fix_appointment, name="fix_appointment"),
+    path("appointment_success", views.appointment_success, name="appointment_success"),
+    path('appointmentHistory', views.appointmentHistory, name='appointmentHistory'),
+    path('appointmentRequest', views.appointmentRequest, name='appointmentRequest'),
+    path('appointmentScheduled', views.appointmentScheduled, name='appointmentScheduled'),
+    path('update_status/<int:appointment_id>/', views.update_status, name='update_status'),
+
+
 ]

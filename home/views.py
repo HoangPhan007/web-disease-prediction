@@ -15,6 +15,8 @@ from pyexpat.errors import messages
 from django.shortcuts import render, redirect
 from django import forms
 from .models import UserProfile, mentalDisorder
+from .models import AppointmentData, DoctorUser
+from .forms import AppointmentDataForm
 
 mental_disorder_model = joblib.load('static/models/mental_disorder_prediction.pkl')
 mental_disorder_encoder = joblib.load('static/encoders/mental_disorder_encoder.pkl')
@@ -238,3 +240,59 @@ def mental_disorder(request):
 @login_required
 def health_prediction(request):
     return render(request, 'health_test.html', {'user_name': request.user.first_name + " " + request.user.last_name})
+#  # Chỉ người dùng đã đăng nhập mới có thể đặt lịch
+@login_required
+def fix_appointment(request):
+    form = AppointmentDataForm()
+    doctors = DoctorUser.objects.all()
+    if request.method == 'POST':
+        form = AppointmentDataForm(request.POST)
+        if form.is_valid():
+            appointment = form.save(commit=False)
+            appointment.user = request.user
+            doctor_id = request.POST.get('doctor')
+            doctor = DoctorUser.objects.get(id=doctor_id)
+            appointment.doctor = doctor
+            appointment.save()
+            return redirect('appointmentHistory')
+    return render(request, 'fix_appointment.html', {
+        'form': form,
+        'user_name': request.user.first_name + " " + request.user.last_name,
+        'doctors': doctors
+    })
+# Người dùng xem lịch sử các cuộc hẹn của mình
+@login_required
+def appointmentHistory(request):
+    appointment = AppointmentData.objects.filter(user=request.user)
+    return render(request, 'appointment_history.html', {
+        'user_name': request.user.first_name + " " + request.user.last_name,
+        'appointment': appointment
+    })
+# Bác sĩ cập nhật trạng thái lịch hẹn sang "Scheduled"
+def update_status(request, appointment_id):
+    appointment = AppointmentData.objects.get(pk=appointment_id)
+    appointment.status = 'Scheduled'
+    appointment.save()
+    return redirect('appointmentRequest')
+# Bác sĩ xem các lịch hẹn đang chờ xử lý
+@login_required
+def appointmentRequest(request):
+    doctor = DoctorUser.objects.get(username=request.user.username)
+    appointment = AppointmentData.objects.filter(doctor=doctor, status='Pending')
+    return render(request, 'appointment_request.html', {
+        'user_name': request.user.first_name + " " + request.user.last_name,
+        'appointment': appointment
+    })
+#  Bác sĩ xem các lịch hẹn đã được duyệt
+@login_required
+def appointmentScheduled(request):
+    doctor = DoctorUser.objects.get(username=request.user.username)
+    appointment = AppointmentData.objects.filter(doctor=doctor, status='Scheduled')
+    return render(request, 'appointment_scheduled.html', {
+        'user_name': request.user.first_name + " " + request.user.last_name,
+        'appointment': appointment
+    })
+# Trang thông báo đặt lịch thành công
+@login_required
+def appointment_success(request):
+    return render(request, 'appointment_success.html')
