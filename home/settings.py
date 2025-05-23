@@ -31,8 +31,12 @@ SECRET_KEY = 'django-insecure-l=o!794w3oxmu^kau+59fn(f+&n!mstq)mfqw&!1)yes2jno_w
 DEBUG = True
 
 # ALLOWED_HOSTS = ['*']
-ALLOWED_HOSTS = ['web-prediction-disease.onrender.com']
-CSRF_TRUSTED_ORIGINS = ['https://web-prediction-disease.onrender.com']
+ALLOWED_HOSTS = ['web-prediction-disease.onrender.com', '127.0.0.1', 'localhost']
+CSRF_TRUSTED_ORIGINS = [
+    'https://web-prediction-disease.onrender.com',
+    'http://127.0.0.1:8000',
+    'http://localhost:8000'
+]
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
