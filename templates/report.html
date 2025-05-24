@@ -111,7 +111,7 @@
                     </div>
                 </div>
 
-                <button id="printButton" class="print-button my-4 col-md-12 btn btn-primary" onclick="">Print Report</button>
+                <button id="printButton" class="print-button my-4 col-md-12 btn btn-primary" onclick="printToPDF()">Print Report</button>
                 <p>
                     <i>We hope you have found the information provided helpful in addressing your concerns. Should you require any further assistance or have additional questions, please do not hesitate to reach out to us.<br><br>
                         Thank you for choosing our services. We appreciate the opportunity to assist you.<br><br>
@@ -127,5 +127,19 @@
         </main>
     </div>
 
+    <script>
+        function printToPDF() {
+
+            var printButton = document.getElementById("printButton");
+            if (printButton) {
+                printButton.style.display = "none";
+            }
+
+            window.print();
+            if (printButton) {
+                printButton.style.display = "block";
+            }
+        }
+    </script>
 
 {% endblock body %}
