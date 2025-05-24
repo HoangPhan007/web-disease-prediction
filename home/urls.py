@@ -30,4 +30,5 @@ urlpatterns = [
     path('logout', views.user_logout, name='logout'),
     path("health_prediction", views.health_prediction, name="health_prediction"),
     path('mental_disorder', views.mental_disorder, name="mental_disorder"),
+    path('pcos', views.pcos, name='pcos'),
 ]

@@ -238,3 +238,7 @@ def mental_disorder(request):
 @login_required
 def health_prediction(request):
     return render(request, 'health_test.html', {'user_name': request.user.first_name + " " + request.user.last_name})
+
+
+def pcos(request):
+    return render(request, 'pcos.html',)
