@@ -23,7 +23,7 @@ from .forms import pcosDisorderForm
 mental_disorder_model = joblib.load('static/models/mental_disorder_prediction.pkl')
 mental_disorder_encoder = joblib.load('static/encoders/mental_disorder_encoder.pkl')
 mental_disorder_output_encoder = joblib.load('static/encoders/mental_disorder_output_encoder.pkl')
-
+mental_disorder_df = pd.read_csv('static/mentalDisorder.csv')
 
 # form Register information user
 class UserRegistrationForm(UserCreationForm):
@@ -324,8 +324,71 @@ def pcos(request, pcos_model=None):  # Nhận request từ client và mô hình 
         'form': form, 'user_name': request.user.first_name + " " + request.user.last_name
     })
 
+@login_required  # Bắt buộc phải đăng nhập
 def report(request):
+    user_data = userHistory.objects.last()  # Lấy lịch sử kiểm tra mới nhất
+
+    user_info = {}
+    # Thêm thông tin cơ bản từ bản ghi kiểm tra
+    user_info['test_type'] = user_data.test_type
+    user_info['result'] = user_data.result
+    user_info['date'] = user_data.date
+
+    # Lấy hồ sơ người dùng tương ứng
+    user_profile = UserProfile.objects.get(user=user_data.user)
+    user_info['dob'] = user_profile.dob
+    user_info['gender'] = user_profile.gender
+    user_info['height'] = user_profile.height
+    user_info['weight'] = user_profile.weight
+    user_info['profession'] = user_profile.profession
+
+    given_list = user_data.get_symptoms()  # Lấy danh sách triệu chứng (JSON -> list)
+
+    # Xác định tên thuộc tính dựa vào loại test
+    if user_data.test_type == 'Mental Disorder Test':
+        attributes = mental_disorder_df.columns[1:]
+    elif user_data.test_type == 'PCOS Test':
+        attributes = [
+            'Period Frequency', 'Gained Weight', 'Excessive body/facial hair growth',
+            'Noticed skin darkening', 'Hair Loss/ Hair Thinning/ Baldness', 'Pimples/Acne',
+            'Fast Food Consumption', 'Exercise Regularity', 'Mood Swings',
+            'Menstrual Regularity', 'Duration of Menstrual Periods', 'Blood Group'
+        ]
+    elif user_data.test_type == 'Obesity Test':
+        attributes = ['Activity Level (1-4)']
+
+    # Gộp tên triệu chứng với giá trị tương ứng
+    attributes_values = {}
+    for i in range(len(given_list)):
+        attributes_values[attributes[i]] = given_list[i]
+
+    # Gợi ý lời khuyên theo từng loại test và kết quả
+    if user_data.test_type == 'Mental Disorder Test':
+        advice = {
+            'Bipolar Type-2': "...",
+            "Depression": "...",
+            "Bipolar Type-1": "...",
+            "Normal": "..."
+        }
+    elif user_data.test_type == 'PCOS Test':
+        advice = {
+            'PCOS Positive': "Implement healthy habits like ...",
+            'PCOS Negative': "Maintain a balanced lifestyle including ..."
+        }
+    elif user_data.test_type == 'Obesity Test':
+        advice = {
+            'Normal weight': 'Maintain your healthy lifestyle habits...',
+            'Obese': 'Seek professional guidance...',
+            'Overweight': 'Implement small, gradual changes...',
+            'Underweight': 'Consult with a healthcare provider...'
+        }
+
+    # Gắn lời khuyên vào user_info
+    user_info['advice'] = advice[user_data.result]
+
     # Trả về giao diện báo cáo
     return render(request, 'report.html', {
+        'user_info': user_info,
+        'attributes_values': attributes_values,
         'user_name': request.user.first_name + " " + request.user.last_name
     })
