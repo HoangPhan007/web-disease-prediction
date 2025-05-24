@@ -14,7 +14,11 @@ from pyexpat.errors import messages
 
 from django.shortcuts import render, redirect
 from django import forms
-from .models import UserProfile, mentalDisorder
+from .models import UserProfile, mentalDisorder, userHistory
+from datetime import date
+import json
+from django.utils import timezone
+from .forms import pcosDisorderForm
 
 mental_disorder_model = joblib.load('static/models/mental_disorder_prediction.pkl')
 mental_disorder_encoder = joblib.load('static/encoders/mental_disorder_encoder.pkl')
@@ -240,5 +244,82 @@ def health_prediction(request):
     return render(request, 'health_test.html', {'user_name': request.user.first_name + " " + request.user.last_name})
 
 
-def pcos(request):
-    return render(request, 'pcos.html',)
+
+@login_required  # Đảm bảo người dùng đã đăng nhập mới được truy cập view này
+def pcos(request, pcos_model=None):  # Nhận request từ client và mô hình đã huấn luyện (pcos_model)
+    user_data = UserProfile.objects.get(user=request.user)  # Lấy thông tin hồ sơ của người dùng hiện tại
+
+    # Tính tuổi dựa vào ngày hiện tại và ngày sinh
+    age = date.today().year - user_data.dob.year - (
+            (date.today().month, date.today().day) < (user_data.dob.month, user_data.dob.day)
+    )
+
+    if request.method == 'POST':  # Nếu người dùng gửi form (POST request)
+        form = pcosDisorderForm(request.POST)  # Tạo form từ dữ liệu người dùng nhập
+        if form.is_valid():  # Kiểm tra dữ liệu hợp lệ
+            # Lấy từng giá trị từ form
+            period_frequency = form.cleaned_data['period_frequency']
+            gained_weight = form.cleaned_data['gained_weight']
+            body_hair_growth = form.cleaned_data['body_hair_growth']
+            skin_dark = form.cleaned_data['skin_dark']
+            hair_problem = form.cleaned_data['hair_problem']
+            pimples = form.cleaned_data['pimples']
+            fast_food = form.cleaned_data['fast_food']
+            exercise = form.cleaned_data['exercise']
+            mood_swing = form.cleaned_data['mood_swing']
+            mentrual_regularity = form.cleaned_data['mentrual_regularity']
+            duration = form.cleaned_data['duration']
+            blood_grp = form.cleaned_data['blood_grp']
+
+            # Tạo danh sách đầu vào cho mô hình ML
+            new_data = [[
+                age, user_data.weight, user_data.height, period_frequency,
+                int(gained_weight), int(body_hair_growth), int(skin_dark), int(hair_problem),
+                int(pimples), int(fast_food), int(exercise), int(mood_swing),
+                int(mentrual_regularity), int(duration), int(blood_grp)
+            ]]
+
+            prediction_result = pcos_model.predict(new_data)[0]  # Dự đoán kết quả từ mô hình
+
+            # Đổi kết quả dự đoán thành chuỗi dễ hiểu
+            prediction_result = 'PCOS Positive' if prediction_result == 1 else 'PCOS Negative'
+
+            # Mapping số thành YES/NO hoặc nhóm máu
+            ch = {1: "YES", 0: "NO"}
+            blood_group = {
+                11: 'A+', 12: 'A-', 13: 'B+', 14: 'B-', 15: 'O+',
+                16: 'O-', 17: 'AB+', 18: 'AB-'
+            }
+
+            # Chuyển danh sách triệu chứng sang dạng mô tả
+            symp = [
+                period_frequency, ch[int(gained_weight)], ch[int(body_hair_growth)],
+                ch[int(skin_dark)], ch[int(hair_problem)], ch[int(pimples)],
+                ch[int(fast_food)], ch[int(exercise)], ch[int(mood_swing)],
+                ch[int(mentrual_regularity)], int(duration), blood_group[int(blood_grp)]
+            ]
+
+            # Lưu lịch sử kiểm tra vào database
+            my_instance = userHistory(
+                user=request.user,
+                test_type='PCOS Test',
+                symptoms=json.dumps(symp),  # Chuyển danh sách thành JSON string
+                result=prediction_result,
+                date=timezone.now()
+            )
+            my_instance.save()
+
+            # Trả kết quả về giao diện kèm form và dữ liệu
+            return render(request, 'pcos.html', {
+                'age': age, 'height': user_data.height, 'weight': user_data.weight,
+                'form': form, 'prediction_result': prediction_result,
+                'user_name': request.user.first_name + " " + request.user.last_name
+            })
+    else:
+        form = pcosDisorderForm()  # Nếu là GET request thì chỉ tạo form trống
+
+    # Trả về giao diện kèm thông tin người dùng và form
+    return render(request, 'pcos.html', {
+        'age': age, 'height': user_data.height, 'weight': user_data.weight,
+        'form': form, 'user_name': request.user.first_name + " " + request.user.last_name
+    })

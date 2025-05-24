@@ -1,9 +1,13 @@
 # from turtle import pd
 import pandas as pd
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AbstractUser
 
 from django.db import models
+import json
+from django.utils import timezone
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.contrib.auth.models import Group, Permission
 
 # chuẩn bị dataset cho model
 mental_disorder_df = pd.read_csv('static/mentalDisorder.csv')
@@ -83,3 +87,92 @@ class mentalDisorder(models.Model):
 
     # Mức độ lạc quan trong suy nghĩ, có nhìn nhận tích cực về cuộc sống không
     optimisim = models.CharField(max_length=100, choices=choices_dict['Optimisim'])  # Lưu ý: nên đổi thành 'optimism'
+
+
+class userHistory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # Liên kết với người dùng đã thực hiện kiểm tra
+    test_type = models.CharField(max_length=120)              # Tên loại kiểm tra (PCOS, Mental Disorder, Obesity)
+    symptoms = models.CharField(max_length=500)               # Danh sách triệu chứng (dạng chuỗi JSON)
+    result = models.CharField(max_length=120)                 # Kết quả dự đoán từ mô hình
+    date = models.DateField(default=timezone.now)             # Ngày thực hiện kiểm tra
+
+    def set_symptoms(self, symptoms_list):  # Lưu triệu chứng dưới dạng JSON
+        self.symptoms = json.dumps(symptoms_list)
+
+    def get_symptoms(self):                 # Trả lại triệu chứng dưới dạng list
+        return json.loads(self.symptoms)
+
+
+
+class pcosDisorder(models.Model):
+    BLOOD_GROUP_CHOICES = (   # Danh sách nhóm máu
+        ('11', 'A+'), ('12', 'A-'), ('13', 'B+'), ('14', 'B-'),
+        ('15', 'O+'), ('16', 'O-'), ('17', 'AB+'), ('18', 'AB-'),
+    )
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # Người thực hiện bài kiểm tra
+    period_frequency = models.IntegerField(                   # Tần suất kinh nguyệt trong 1 năm
+        validators=[MinValueValidator(1), MaxValueValidator(12)]
+    )
+    # Các câu hỏi YES/NO (1/0) thể hiện triệu chứng
+    gained_weight = models.BooleanField(choices=((1, 'YES'), (0, 'NO')))
+    body_hair_growth = models.BooleanField(choices=((1, 'YES'), (0, 'NO')))
+    skin_dark = models.BooleanField(choices=((1, 'YES'), (0, 'NO')))
+    hair_problem = models.BooleanField(choices=((1, 'YES'), (0, 'NO')))
+    pimples = models.BooleanField(choices=((1, 'YES'), (0, 'NO')))
+    fast_food = models.BooleanField(choices=((1, 'YES'), (0, 'NO')))
+    exercise = models.BooleanField(choices=((1, 'YES'), (0, 'NO')))
+    mood_swing = models.BooleanField(choices=((1, 'YES'), (0, 'NO')))
+    mentrual_regularity = models.BooleanField(choices=((1, 'YES'), (0, 'NO')))
+
+    duration = models.IntegerField(                          # Số ngày hành kinh
+        validators=[MinValueValidator(1), MaxValueValidator(31)]
+    )
+    blood_grp = models.CharField(                            # Nhóm máu
+        max_length=100, choices=BLOOD_GROUP_CHOICES
+    )
+
+class Appointment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # Người đặt lịch
+    appointment_date = models.DateTimeField()                 # Ngày giờ hẹn gặp bác sĩ
+
+
+class obesityDisorder(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # Người thực hiện kiểm tra
+    activityLevel = models.CharField(                         # Mức độ vận động (1: ít, 4: cao)
+        max_length=10,
+        choices=(('1', '1'), ('2', '2'), ('3', '3'), ('4', '4'))
+    )
+
+
+class DoctorUser(AbstractUser):  # Kế thừa từ User, mở rộng thêm thông tin bác sĩ
+    phone = models.CharField(max_length=20)
+    specialization = models.CharField(max_length=100)    # Chuyên ngành
+    hospital = models.CharField(max_length=255)          # Bệnh viện công tác
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
+    country = models.CharField(max_length=100)
+
+    about = models.CharField(max_length=1000)            # Giới thiệu bản thân
+    education = models.CharField(max_length=1000)        # Trình độ học vấn
+    experience = models.CharField(max_length=1000)       # Kinh nghiệm
+    languages = models.CharField(max_length=1000)        # Ngôn ngữ có thể nói
+    expertise = models.CharField(max_length=1000)        # Lĩnh vực chuyên môn
+
+    class Meta:
+        db_table = 'doctor_user'
+
+    # Các quyền giống User
+    groups = models.ManyToManyField(Group, related_name='doctor_users', blank=True)
+    user_permissions = models.ManyToManyField(Permission, related_name='doctor_users', blank=True)
+
+    USERNAME_FIELD = 'username'
+
+class AppointmentData(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)         # Người đặt lịch
+    doctor = models.ForeignKey(DoctorUser, on_delete=models.CASCADE) # Bác sĩ được đặt lịch
+    email = models.CharField(max_length=150)                         # Email liên hệ
+    phone = models.CharField(max_length=20)                          # Số điện thoại liên hệ
+    appointmentDate = models.DateTimeField()                         # Ngày hẹn
+    message = models.CharField(max_length=1000)                      # Ghi chú từ người bệnh
+    status = models.CharField(max_length=50, default="Pending")      # Trạng thái (Pending, Confirmed, Done)
