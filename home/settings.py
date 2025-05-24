@@ -144,8 +144,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
-
+SITE_URL = 'http://127.0.0.1:8000/'  # hoặc localhost khi dev
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'danhv5879@gmail.com'        # Thay email của bạn
+EMAIL_HOST_PASSWORD = 'uqnq qhsa ffvw ozog'     # Thay mật khẩu ứng dụng (app password) hoặc mật khẩu email
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
