@@ -1,5 +1,6 @@
 from django import forms
 from .models import Appointment, AppointmentData, obesityDisorder
+from .models import MedicineReminder
 
 class AppointmentForm(forms.ModelForm):
     class Meta:
@@ -65,3 +66,30 @@ class obesityDisorderForm(forms.ModelForm):
             field.widget.attrs.update({'class': 'form-control col-md-12'})
             if isinstance(field.widget, forms.Select):
                 field.empty_label = "Choose one"
+# Danh forms.py
+class MedicineReminderForm(forms.ModelForm):
+    class Meta:
+        model = MedicineReminder
+        fields = [
+            'medicine_name',
+            'dosage',
+            'usage_instructions',
+            'start_date',
+            'end_date',
+            'time_of_day',
+            'frequency_per_day',
+            'additional_notes',
+            'reminder_method',
+        ]
+        widgets = {
+            'medicine_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'dosage': forms.TextInput(attrs={'class': 'form-control'}),
+            'usage_instructions': forms.Textarea(attrs={'class': 'form-control'}),
+            'start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'end_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'time_of_day': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
+            'frequency_per_day': forms.NumberInput(attrs={'class': 'form-control'}),
+            'additional_notes': forms.Textarea(attrs={'class': 'form-control'}),
+            'reminder_method': forms.Select(attrs={'class': 'form-control'}),
+        }
+        

@@ -1,0 +1,24 @@
+<!-- Required meta tags -->
+{% extends "login_base.html" %}
+
+<!-- Required meta tags -->
+{% block title %}Complete Profile{% endblock title %}
+
+<!-- Required meta tags -->
+{% block body %}
+<!-- Bootstrap CSS -->
+<link
+  rel="stylesheet"
+  href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+/>
+<div class="container mt-5">
+  <div class="container mt-4">
+    <h2>Chỉnh sửa nhắc nhở thuốc</h2>
+    <form method="post">
+      {% csrf_token %} {{ form.as_p }}
+      <button type="submit">Cập nhật</button>
+    </form>
+  </div>
+</div>
+
+{% endblock body %}

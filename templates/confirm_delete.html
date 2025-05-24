@@ -1,0 +1,25 @@
+<!-- Required meta tags -->
+{% extends "login_base.html" %}
+
+<!-- Required meta tags -->
+{% block title %}Complete Profile{% endblock title %}
+
+<!-- Required meta tags -->
+{% block body %}
+<!-- Bootstrap CSS -->
+<link
+  rel="stylesheet"
+  href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+/>
+
+<div class="container mt-5">
+  <div class="container mt-4">
+    <h2>Bạn có chắc muốn xóa nhắc nhở "{{ reminder.medicine_name }}" không?</h2>
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit">Xóa</button>
+      <a href="{% url 'reminder_history' %}">Hủy</a>
+    </form>
+  </div>
+</div>
+{% endblock body %}

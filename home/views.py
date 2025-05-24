@@ -1,16 +1,19 @@
 from urllib import request
+from django.shortcuts import get_object_or_404
 
 import joblib
 import numpy as np
 import pandas as pd
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.contrib.auth import authenticate, login
+from django.shortcuts import render, redirect
 
 from django.contrib.auth import authenticate, login, logout
 
 from django.contrib.auth.forms import UserCreationForm
 
 from django.contrib.auth.models import User
-from pyexpat.errors import messages
 
 from django.shortcuts import render, redirect
 from django import forms
@@ -82,6 +85,7 @@ def register(request):
     return render(request, 'register.html', {'form': form})
 
 
+
 def user_login(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -94,7 +98,6 @@ def user_login(request):
         else:
             messages.error(request, "Do not user. Try again!")
     return render(request, 'login.html')
-
 
 
 @login_required
@@ -238,3 +241,127 @@ def mental_disorder(request):
 @login_required
 def health_prediction(request):
     return render(request, 'health_test.html', {'user_name': request.user.first_name + " " + request.user.last_name})
+
+
+# Danh views.py
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from .forms import MedicineReminderForm
+from .email_utils import send_medicine_reminder_email
+
+@login_required
+# def add_reminder(request):
+#     if request.method == 'POST':
+#         form = MedicineReminderForm(request.POST)
+#         if form.is_valid():
+#             reminder = form.save(commit=False)
+#             reminder.user = request.user
+#             reminder.save()
+
+#             if request.user.email:
+#                send_medicine_reminder_email(
+#                 email=request.user.email,
+#                 medicine_name=reminder.medicine_name,
+#                 dosage=reminder.dosage,
+#                 usage_instructions=reminder.usage_instructions,
+#                 start_date=reminder.start_date,
+#                 end_date=reminder.end_date,
+#                 time_of_day=reminder.time_of_day,
+#                 frequency_per_day=reminder.frequency_per_day,
+#                 additional_notes=reminder.additional_notes
+#             )
+#             return redirect('reminder_history')
+#     else:
+#         form = MedicineReminderForm()
+#     return render(request, 'add_reminder.html', {'form': form})
+
+# @login_required
+# def add_reminder(request):
+#     if request.method == 'POST':
+#         form = MedicineReminderForm(request.POST)
+#         if form.is_valid():
+#             reminder = form.save(commit=False)
+#             reminder.user = request.user
+#             reminder.save()
+
+#             # Gửi email
+#             if request.user.email:
+#                 send_medicine_reminder_email(request, reminder)
+
+#             return redirect('reminder_history')
+#     else:
+#         form = MedicineReminderForm()
+#     return render(request, 'add_reminder.html', {'form': form})
+@login_required
+def add_reminder(request):
+    if request.method == 'POST':
+        form = MedicineReminderForm(request.POST)
+        if form.is_valid():
+            reminder = form.save(commit=False)
+            reminder.user = request.user
+            reminder.save()
+
+            if request.user.email:
+                base_url = request.build_absolute_uri('/').rstrip('/')
+                send_medicine_reminder_email(reminder, base_url=base_url)
+
+            return redirect('reminder_history')
+    else:
+        form = MedicineReminderForm()
+    return render(request, 'add_reminder.html', {'form': form})
+
+
+
+@login_required
+def reminder_history(request):
+    reminders = MedicineReminder.objects.filter(user=request.user).order_by('-id')
+    return render(request, 'reminder_history.html', {'reminders': reminders})
+
+
+@login_required
+def edit_reminder(request, reminder_id):
+    reminder = get_object_or_404(MedicineReminder, id=reminder_id, user=request.user)
+
+    if request.method == 'POST':
+        form = MedicineReminderForm(request.POST, instance=reminder)
+        if form.is_valid():
+            form.save()
+            return redirect('reminder_history')  # hoặc tên view hiển thị danh sách
+    else:
+        form = MedicineReminderForm(instance=reminder)
+    
+    return render(request, 'edit_reminder.html', {'form': form})
+
+from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect
+
+@login_required
+def delete_reminder(request, reminder_id):
+    reminder = get_object_or_404(MedicineReminder, id=reminder_id, user=request.user)
+    if request.method == 'POST':
+        name = reminder.medicine_name
+        reminder.delete()
+        messages.success(request, f'Đã xóa nhắc nhở thuốc "{name}" thành công.')
+        return redirect('reminder_history')
+
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from .models import MedicineReminder
+
+def mark_as_done(request, reminder_id):
+    reminder = get_object_or_404(MedicineReminder, id=reminder_id)
+    reminder.status = 'done'
+    reminder.save()
+    messages.success(request, f'Bạn đã đánh dấu thuốc "{reminder.medicine_name}" là đã uống.')
+    return redirect('reminder_history')  # hoặc trang phù hợp bạn muốn chuyển đến
+
+
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+
+def mark_as_completed(request, reminder_id):
+    reminder = get_object_or_404(MedicineReminder, id=reminder_id, user=request.user)
+    reminder.status = 'completed'
+    reminder.save()
+    messages.success(request, "Đã đánh dấu nhắc nhở là hoàn thành.")
+    return redirect('reminder_history')  # đổi thành tên url bạn dùng để xem lịch sử

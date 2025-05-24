@@ -30,4 +30,10 @@ urlpatterns = [
     path('logout', views.user_logout, name='logout'),
     path("health_prediction", views.health_prediction, name="health_prediction"),
     path('mental_disorder', views.mental_disorder, name="mental_disorder"),
+    path('add_reminder/', views.add_reminder, name='add_reminder'),
+    path('reminder_history/', views.reminder_history, name='reminder_history'),
+    path('reminder/<int:reminder_id>/edit/', views.edit_reminder, name='edit_reminder'),
+    path('reminder/<int:reminder_id>/delete/', views.delete_reminder, name='delete_reminder'),
+    path('reminder/<int:reminder_id>/done/', views.mark_as_done, name='mark_as_done'),
+    path('reminder/<int:reminder_id>/mark_completed/', views.mark_as_completed, name='mark_as_completed'),
 ]
