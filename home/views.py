@@ -323,3 +323,9 @@ def pcos(request, pcos_model=None):  # Nhận request từ client và mô hình 
         'age': age, 'height': user_data.height, 'weight': user_data.weight,
         'form': form, 'user_name': request.user.first_name + " " + request.user.last_name
     })
+
+def report(request):
+    # Trả về giao diện báo cáo
+    return render(request, 'report.html', {
+        'user_name': request.user.first_name + " " + request.user.last_name
+    })
