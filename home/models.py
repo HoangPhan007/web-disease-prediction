@@ -5,6 +5,46 @@ from django.contrib.auth.models import User
 
 from django.db import models
 
+
+from django.db import models
+from django.contrib.auth.models import User
+
+class Appointment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    appointment_date = models.DateTimeField()
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.appointment_date}"
+from django.db import models
+from django.contrib.auth.models import User
+
+class AppointmentData(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    appointment_date = models.DateTimeField()
+    notes = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.appointment_date}"
+from django.db import models
+from django.contrib.auth.models import User
+
+class obesityDisorder(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    bmi = models.FloatField()
+    diagnosis_date = models.DateField()
+    notes = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.username} - BMI: {self.bmi}"
+class pcosDisorder(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    diagnosis_date = models.DateField(null=True, blank=True)
+    symptoms = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"{self.user.username} - PCOS Disorder"
+
 # chuẩn bị dataset cho model
 mental_disorder_df = pd.read_csv('static/mentalDisorder.csv')
 
@@ -83,3 +123,34 @@ class mentalDisorder(models.Model):
 
     # Mức độ lạc quan trong suy nghĩ, có nhìn nhận tích cực về cuộc sống không
     optimisim = models.CharField(max_length=100, choices=choices_dict['Optimisim'])  # Lưu ý: nên đổi thành 'optimism'
+# Danh models.py
+class MedicineReminder(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    medicine_name = models.CharField(max_length=255)
+    dosage = models.CharField(max_length=100)
+    usage_instructions = models.TextField()
+    start_date = models.DateField()
+    end_date = models.DateField()
+    time_of_day = models.TimeField()
+    frequency_per_day = models.IntegerField(default=1)
+    additional_notes = models.TextField(blank=True, null=True)
+    reminder_method = models.CharField(
+        max_length=100,
+        choices=[('email', 'Email')],
+        default='email'
+    )
+
+    STATUS_CHOICES = [
+        ('pending', 'Chưa hoàn thành'),
+        ('done', 'Đã uống'),
+        ('completed', 'Hoàn thành'),
+    ]
+
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+
+
+
+    def __str__(self):
+        return f"{self.user.username} - {self.medicine_name}"
+class ReminderTime(models.Model):
+    reminder = models.ForeignKey(MedicineReminder, on_delete=models.CASCADE)

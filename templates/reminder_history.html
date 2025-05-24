@@ -1,0 +1,97 @@
+<!-- Required meta tags -->
+{% extends "login_base.html" %}
+<!-- Required meta tags -->
+{% block title %}Complete Profile{% endblock title %}
+<!-- Required meta tags -->
+{% block body %}
+<link
+  rel="stylesheet"
+  href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+/>
+
+<div class="container-fluid mt-5">
+  <h2>Lịch sử nhắc nhở thuốc</h2>
+
+  {% if reminders %}
+  <table class="table table-striped mt-3">
+    <thead>
+      <tr>
+        <th>Tên thuốc</th>
+        <th>Liều lượng</th>
+        <th>Ngày bắt đầu</th>
+        <th>Ngày kết thúc</th>
+        <th>Giờ uống</th>
+        <th>Số lần/ngày</th>
+        <th>Ghi chú</th>
+        <th>Trạng thái</th>
+        <th>Hành động</th>
+        <th>Uống Thuốc</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in reminders %}
+      <tr>
+        <td>{{ r.medicine_name }}</td>
+        <td>{{ r.dosage }}</td>
+        <td>{{ r.start_date }}</td>
+        <td>{{ r.end_date }}</td>
+        <td>{{ r.time_of_day }}</td>
+        <td>{{ r.frequency_per_day }}</td>
+        <td>{{ r.additional_notes|default:'-' }}</td>
+
+        <td>
+          {% if r.status == 'pending' %}
+          <span class="badge badge-warning">Chưa uống</span>
+          {% else %}
+          <span class="badge badge-success">Đã uống</span>
+          {% endif %}
+        </td>
+
+        <!-- Cột Hành động: chỉ còn Sửa và Xóa -->
+        <td>
+          <a
+            href="{% url 'edit_reminder' r.id %}"
+            class="btn btn-sm btn-warning ml-1"
+            >Sửa</a
+          >
+          <form
+            method="post"
+            action="{% url 'delete_reminder' r.id %}"
+            style="display: inline"
+            onsubmit="return confirm('Bạn có chắc chắn muốn xóa nhắc nhở này?');"
+          >
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-danger">Xóa</button>
+          </form>
+        </td>
+
+        <!-- Cột Uống Thuốc: nút Đánh dấu hoặc trạng thái -->
+        <td>
+          {% if r.status == 'pending' %}
+          <a href="{% url 'mark_as_done' r.id %}" class="btn btn-success btn-sm"
+            >Đánh Dấu Đã uống</a
+          >
+          {% else %}
+          <span class="text-muted">-</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>Bạn chưa có lời nhắc nào.</p>
+  {% endif %}
+</div>
+
+{% if messages %} {% for message in messages %}
+<div
+  class="alert alert-{{ message.tags }} alert-dismissible fade show"
+  role="alert"
+>
+  {{ message }}
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+{% endfor %} {% endif %} {% endblock body %}
