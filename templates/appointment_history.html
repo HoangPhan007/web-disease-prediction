@@ -1,37 +1,49 @@
-{% extends "login_base.html" %}
+<!-- Required meta tags -->
+{% extends "login_base.html" %} {% load form_filters %} {% block title %}Lịch Sử
+Đặt Lịch{% endblock title %} {% block body %}
+<link
+  rel="stylesheet"
+  href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+/>
 
-{%block title%}Appointment History{%endblock title%}
+<div class="container mt-5">
+  <div class="card shadow-lg p-4">
+    <h2 class="mb-4 text-center">🗓️ Your appointment history</h2>
 
-{%block body%}
-
-<div class="container my-4">
-
-    <div class="my-3 p-3 bg-white rounded box-shadow">
-        <h3 class="my-3 pb-2 mb-0">Appointment History</h3>
-        <br>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Appointment Date</th>
-                    <th>Appointment With</th>
-                    <th>Doctor's Expertise</th>
-                    <th>Appointment Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for app in appointment reversed%}
-                <tr>
-                    <td class="text-capitalize text-dark">Dr. {{ app.doctor.first_name }} {{ app.doctor.last_name }}</td>
-                    <td>{{ app.appointmentDate.date }}</td>
-                    <td>{{ app.doctor.expertise }}</td>
-                    <td class="{% if app.status == 'Pending' %}text-danger{% else %}text-success{% endif %}">
-                        <b>{{ app.status }}</b>
-                    </td>                    
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    {% if appointments %}
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped">
+        <thead class="thead-dark">
+          <tr>
+            <th>#</th>
+            <th>Doctor</th>
+            <th>Date</th>
+            <th>Hours</th>
+            <th>Message</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for appt in appointments %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ appt.doctor }}</td>
+            <td>{{ appt.appointment_date }}</td>
+            <td>{{ appt.appointment_time }}</td>
+            <td>{{ appt.notes|default:"(Không có)" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
-</div>
+    {% else %}
+    <div class="alert alert-info text-center">No appointments yet.</div>
+    {% endif %}
 
-{%endblock body%}
+    <div class="mt-3 text-center">
+      <a href="{% url 'dashboard' %}" class="btn btn-secondary"
+        >← Back to main page</a
+      >
+    </div>
+  </div>
+</div>
+{% endblock body %}

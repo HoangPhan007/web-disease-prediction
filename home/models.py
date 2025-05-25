@@ -154,3 +154,42 @@ class MedicineReminder(models.Model):
         return f"{self.user.username} - {self.medicine_name}"
 class ReminderTime(models.Model):
     reminder = models.ForeignKey(MedicineReminder, on_delete=models.CASCADE)
+# Phát
+from django.db import models
+
+class Doctor_1(models.Model):
+    name = models.CharField(max_length=100)
+    specialization = models.CharField(max_length=100, blank=True)
+    email = models.EmailField(blank=True)
+    phone = models.CharField(max_length=20, blank=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.specialization})" if self.specialization else self.name
+
+class Appointment_1(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # để gắn với người dùng
+    full_name = models.CharField(max_length=100)
+    email = models.EmailField()
+    phone = models.CharField(max_length=15)
+    doctor = models.ForeignKey(Doctor_1, on_delete=models.SET_NULL, null=True)
+    appointment_date = models.DateField()
+    appointment_time = models.TimeField()
+    notes = models.TextField(blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Lịch hẹn với {self.doctor} lúc {self.appointment_time} ngày {self.appointment_date}"
+
+# Model lưu lịch làm việc của bác sĩ
+class DoctorSchedule(models.Model):
+    doctor = models.ForeignKey(Doctor_1, on_delete=models.CASCADE, related_name='schedules')
+    day_of_week = models.IntegerField(choices=[
+        (0, 'Monday'), (1, 'Tuesday'), (2, 'Wednesday'),
+        (3, 'Thursday'), (4, 'Friday'), (5, 'Saturday'), (6, 'Sunday')
+    ])
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+
+    def __str__(self):
+        return f"{self.doctor.name} - {self.get_day_of_week_display()} {self.start_time} to {self.end_time}"

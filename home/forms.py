@@ -92,4 +92,41 @@ class MedicineReminderForm(forms.ModelForm):
             'additional_notes': forms.Textarea(attrs={'class': 'form-control'}),
             'reminder_method': forms.Select(attrs={'class': 'form-control'}),
         }
+#Phát
+from django import forms
+
+from django import forms
+from .models import Doctor_1
+
+class AppointmentForm(forms.Form):
+    full_name = forms.CharField(label='Họ và tên', max_length=100)
+    email = forms.EmailField(label='Email')
+    phone = forms.CharField(label='Số điện thoại', max_length=15)
+
+    # Dùng ModelChoiceField để lấy danh sách bác sĩ động
+    doctor = forms.ModelChoiceField(
+        queryset=Doctor_1.objects.all(),
+        label='Chọn bác sĩ',
+        empty_label="-- Chọn bác sĩ --"
+    )
+
+    appointment_date = forms.DateField(
+        label='Ngày hẹn',
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
+    appointment_time = forms.TimeField(
+        label='Giờ hẹn',
+        widget=forms.TimeInput(attrs={'type': 'time'})
+    )
+    notes = forms.CharField(
+        label='Ghi chú',
+        widget=forms.Textarea,
+        required=False
+    )
+
+        
+        
+        
+        
+        
         
