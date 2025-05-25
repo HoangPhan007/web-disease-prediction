@@ -40,4 +40,5 @@ urlpatterns = [
     path('appointment_history/', views.appointment_history, name='appointment_history'),
     path("api/available-doctors/", views.get_available_doctors, name="available_doctors"),
     path("report", views.report, name="report"),
+    path("test_history", views.test_history, name="test_history"),
 ]
