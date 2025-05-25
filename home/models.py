@@ -156,7 +156,10 @@ class ReminderTime(models.Model):
     reminder = models.ForeignKey(MedicineReminder, on_delete=models.CASCADE)
 # Phát
 from django.db import models
-
+# Lưu thông tin bác sĩ (Tên, chuyên khoa, email, điện thoại).
+# Sequence liên quan:
+# Bước 3: Người dùng chọn chuyên khoa và bác sĩ.
+# Bước 9-11: Hệ thống kiểm tra lịch làm việc và danh sách bác sĩ trống.
 class Doctor_1(models.Model):
     name = models.CharField(max_length=100)
     specialization = models.CharField(max_length=100, blank=True)
@@ -165,7 +168,10 @@ class Doctor_1(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.specialization})" if self.specialization else self.name
-
+# Chức năng: Lưu thông tin lịch hẹn của người dùng.
+# Sequence liên quan:
+# Bước 12-15: Người dùng nhập thông tin đặt lịch, hệ thống lưu thông tin vào DB.
+# Bước 18-19: Hiển thị lịch sử đặt lịch cho người dùng.
 class Appointment_1(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # để gắn với người dùng
     full_name = models.CharField(max_length=100)
@@ -182,6 +188,9 @@ class Appointment_1(models.Model):
         return f"Lịch hẹn với {self.doctor} lúc {self.appointment_time} ngày {self.appointment_date}"
 
 # Model lưu lịch làm việc của bác sĩ
+# Chức năng: Lưu lịch làm việc định kỳ của bác sĩ (ngày trong tuần, giờ bắt đầu, giờ kết thúc).
+# Sequence liên quan:
+# Bước 9-11: Kiểm tra lịch làm việc bác sĩ để tìm thời gian trống hợp lệ.
 class DoctorSchedule(models.Model):
     doctor = models.ForeignKey(Doctor_1, on_delete=models.CASCADE, related_name='schedules')
     day_of_week = models.IntegerField(choices=[

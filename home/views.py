@@ -326,12 +326,16 @@ def mark_as_completed(request, reminder_id):
 
 
 # Phát 
-
-
 from django.shortcuts import render, redirect
 from .forms import AppointmentForm
 from django.contrib import messages
 
+# Xử lý đặt lịch khi người dùng gửi form lịch khám (POST)
+# Sequence từng bước 
+# Bước 12: Người dùng xác nhận thông tin đặt lịch (gửi form)
+# Bước 13: Server nhận thông tin và lưu lịch hẹn vào database
+# Bước 15: Hệ thống xác nhận lưu thành công
+# Bước 18-19: Server trả trang xác nhận và thông báo thành công cho người dùng
 
 @login_required
 def appointment_scheduled(request):
@@ -355,6 +359,10 @@ def appointment_scheduled(request):
         form = AppointmentForm()
     return render(request, 'appointment_scheduled.html', {'form': form})
 
+
+# Hiển thị danh sách lịch khám của user đã đặt trước đó, sắp xếp mới nhất lên trên
+# Bước 19: Người dùng nhận thông báo lịch đã đặt
+# Hiển thị dữ liệu lịch sử (dữ liệu đã lưu trước đó)
 @login_required
 def appointment_history(request):
     appointments = Appointment_1.objects.filter(user=request.user).order_by('-created_at')
@@ -365,7 +373,11 @@ from django.http import JsonResponse
 from django.utils.dateparse import parse_date, parse_time
 from datetime import datetime
 from .models import Doctor_1, Appointment_1, DoctorSchedule
-
+# Xử lý yêu cầu lấy danh sách bác sĩ còn lịch trống theo ngày giờ được chọn.
+# Bước sequence tương ứng:
+# Bước 9-11: Người dùng chọn ngày giờ khám
+# Server kiểm tra lịch làm việc bác sĩ và lịch đã đặt (lọc bác sĩ trống)
+# Trả về danh sách bác sĩ còn trống
 def get_available_doctors(request):
     date_str = request.GET.get("date")
     time_str = request.GET.get("time")
@@ -374,15 +386,15 @@ def get_available_doctors(request):
         return JsonResponse({"error": "Missing date or time"}, status=400)
 
     try:
-        appointment_date = parse_date(date_str)  # Chuyển string sang date
-        appointment_time = parse_time(time_str)  # Chuyển string sang time
+        appointment_date = parse_date(date_str) 
+        appointment_time = parse_time(time_str)
     except Exception:
         return JsonResponse({"error": "Invalid date or time format"}, status=400)
 
     if not appointment_date or not appointment_time:
         return JsonResponse({"error": "Invalid date or time"}, status=400)
 
-    # Lấy ngày trong tuần (0=Monday,...6=Sunday)
+    # Lấy ngày trong tuần (Thứ 2 đến chủ nhật)
     day_of_week = appointment_date.weekday()
 
     # Tìm bác sĩ có lịch làm việc phù hợp
