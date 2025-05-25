@@ -18,6 +18,8 @@ from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from django import forms
 from .models import UserProfile, mentalDisorder,userHistory
+from django.utils import timezone
+import json
 
 mental_disorder_model = joblib.load('static/models/mental_disorder_prediction.pkl')
 mental_disorder_encoder = joblib.load('static/encoders/mental_disorder_encoder.pkl')
@@ -209,7 +211,7 @@ def mental_disorder(request):
                         nervous_breakdown, admit_mistakes, overthink, sexual_activity,
                         concentration, optimism
             ]]
-
+            symp = new_data[0]
             # 4.1.3.7 Nếu dữ liệu hợp lệ: Trích xuất cleaned_data từ form, Mã hóa dữ liệu đầu vào
             new_data = mental_disorder_encoder.transform(new_data)
 
@@ -222,7 +224,14 @@ def mental_disorder(request):
             print(prediction_result)
 
             # Lưu lại lịch sử để lưu báo cáo tại đây
-
+            my_instance = userHistory(
+                user=request.user,
+                test_type='Mental Disorder Test',
+                symptoms=json.dumps(symp),  # Convert list to JSON string
+                result=prediction_result[0][0],  # Set result as needed
+                date=timezone.now()  # Set current date and time
+            )
+            my_instance.save()
         # 4.1.3.2 Django Web App render prediction form.
         # 4.1.3.3 HTML template hiển thị biểu mẫu thông tin sức khỏe.
         return render(request, 'mental_disorder_prediction.html', {
@@ -368,14 +377,7 @@ def mark_as_completed(request, reminder_id):
 
 @login_required
 def report(request):
-    current_user = request.user
-    user_data = userHistory.objects.filter(user=current_user).last()
-
-    if not user_data:
-        # Trường hợp user chưa có lịch sử nào, bạn có thể xử lý khác như hiển thị thông báo
-        return render(request, 'report.html', {
-            'error_message': 'Bạn chưa có kết quả kiểm tra nào.'
-        })
+    user_data = userHistory.objects.last()
 
     user_info = {}
     user_info['test_type'] = user_data.test_type
@@ -430,4 +432,4 @@ def report(request):
 
     user_info['advice'] = advice[user_data.result]
 
-    return render(request, 'report.html', {'user_info': user_info, 'user_profile': user_profile, 'attributes_values': attributes_values, 'user_name': request.user.first_name + " " + request.user.last_name})
+    return render(request, 'report.html', {'user_info': user_info, 'attributes_values': attributes_values, 'user_name': request.user.first_name + " " + request.user.last_name})
