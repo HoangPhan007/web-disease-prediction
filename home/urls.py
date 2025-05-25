@@ -36,5 +36,8 @@ urlpatterns = [
     path('reminder/<int:reminder_id>/delete/', views.delete_reminder, name='delete_reminder'),
     path('reminder/<int:reminder_id>/done/', views.mark_as_done, name='mark_as_done'),
     path('reminder/<int:reminder_id>/mark_completed/', views.mark_as_completed, name='mark_as_completed'),
+    path('appointment_scheduled', views.appointment_scheduled, name='appointment_scheduled'),
+    path('appointment_history/', views.appointment_history, name='appointment_history'),
+    path("api/available-doctors/", views.get_available_doctors, name="available_doctors"),
     path("report", views.report, name="report"),
 ]

@@ -10,22 +10,22 @@
 />
 
 <div class="container-fluid mt-5">
-  <h2>Lịch sử nhắc nhở thuốc</h2>
+  <h2>Reminder History</h2>
 
   {% if reminders %}
   <table class="table table-striped mt-3">
     <thead>
       <tr>
-        <th>Tên thuốc</th>
-        <th>Liều lượng</th>
-        <th>Ngày bắt đầu</th>
-        <th>Ngày kết thúc</th>
-        <th>Giờ uống</th>
-        <th>Số lần/ngày</th>
-        <th>Ghi chú</th>
-        <th>Trạng thái</th>
-        <th>Hành động</th>
-        <th>Uống Thuốc</th>
+        <th>Name medication</th>
+        <th>Dosage</th>
+        <th>Start date</th>
+        <th>End date</th>
+        <th>Time to take</th>
+        <th>Number of times/day</th>
+        <th>Notes</th>
+        <th>Status</th>
+        <th>Action</th>
+        <th>Take Medication</th>
       </tr>
     </thead>
     <tbody>
@@ -41,9 +41,9 @@
 
         <td>
           {% if r.status == 'pending' %}
-          <span class="badge badge-warning">Chưa uống</span>
+          <span class="badge badge-warning">Haven't drank yet</span>
           {% else %}
-          <span class="badge badge-success">Đã uống</span>
+          <span class="badge badge-success">Drinked</span>
           {% endif %}
         </td>
 
@@ -61,7 +61,7 @@
             onsubmit="return confirm('Bạn có chắc chắn muốn xóa nhắc nhở này?');"
           >
             {% csrf_token %}
-            <button type="submit" class="btn btn-sm btn-danger">Xóa</button>
+            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
           </form>
         </td>
 
@@ -80,7 +80,7 @@
     </tbody>
   </table>
   {% else %}
-  <p>Bạn chưa có lời nhắc nào.</p>
+  <p>You have no reminders yet.</p>
   {% endif %}
 </div>
 

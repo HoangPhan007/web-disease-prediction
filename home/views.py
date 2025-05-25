@@ -1,6 +1,7 @@
 from urllib import request
 from django.shortcuts import get_object_or_404
-
+from .models import Appointment_1
+from .models import Doctor_1
 import joblib
 import numpy as np
 import pandas as pd
@@ -259,49 +260,6 @@ from .forms import MedicineReminderForm
 from .email_utils import send_medicine_reminder_email
 
 @login_required
-# def add_reminder(request):
-#     if request.method == 'POST':
-#         form = MedicineReminderForm(request.POST)
-#         if form.is_valid():
-#             reminder = form.save(commit=False)
-#             reminder.user = request.user
-#             reminder.save()
-
-#             if request.user.email:
-#                send_medicine_reminder_email(
-#                 email=request.user.email,
-#                 medicine_name=reminder.medicine_name,
-#                 dosage=reminder.dosage,
-#                 usage_instructions=reminder.usage_instructions,
-#                 start_date=reminder.start_date,
-#                 end_date=reminder.end_date,
-#                 time_of_day=reminder.time_of_day,
-#                 frequency_per_day=reminder.frequency_per_day,
-#                 additional_notes=reminder.additional_notes
-#             )
-#             return redirect('reminder_history')
-#     else:
-#         form = MedicineReminderForm()
-#     return render(request, 'add_reminder.html', {'form': form})
-
-# @login_required
-# def add_reminder(request):
-#     if request.method == 'POST':
-#         form = MedicineReminderForm(request.POST)
-#         if form.is_valid():
-#             reminder = form.save(commit=False)
-#             reminder.user = request.user
-#             reminder.save()
-
-#             # Gửi email
-#             if request.user.email:
-#                 send_medicine_reminder_email(request, reminder)
-
-#             return redirect('reminder_history')
-#     else:
-#         form = MedicineReminderForm()
-#     return render(request, 'add_reminder.html', {'form': form})
-@login_required
 def add_reminder(request):
     if request.method == 'POST':
         form = MedicineReminderForm(request.POST)
@@ -374,6 +332,99 @@ def mark_as_completed(request, reminder_id):
     reminder.save()
     messages.success(request, "Đã đánh dấu nhắc nhở là hoàn thành.")
     return redirect('reminder_history')  # đổi thành tên url bạn dùng để xem lịch sử
+
+
+# Phát 
+from django.shortcuts import render, redirect
+from .forms import AppointmentForm
+from django.contrib import messages
+
+# Xử lý đặt lịch khi người dùng gửi form lịch khám (POST)
+# Sequence từng bước 
+# Bước 12: Người dùng xác nhận thông tin đặt lịch (gửi form)
+# Bước 13: Server nhận thông tin và lưu lịch hẹn vào database
+# Bước 15: Hệ thống xác nhận lưu thành công
+# Bước 18-19: Server trả trang xác nhận và thông báo thành công cho người dùng
+
+@login_required
+def appointment_scheduled(request):
+    if request.method == 'POST':
+        form = AppointmentForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            Appointment_1.objects.create(
+                user=request.user,
+                full_name=data['full_name'],
+                email=data['email'],
+                phone=data['phone'],
+                doctor=data['doctor'],
+                appointment_date=data['appointment_date'],
+                appointment_time=data['appointment_time'],
+                notes=data['notes']
+            )
+            messages.success(request, 'Đặt lịch thành công!')
+            return redirect('appointment_history')
+    else:
+        form = AppointmentForm()
+    return render(request, 'appointment_scheduled.html', {'form': form})
+
+
+# Hiển thị danh sách lịch khám của user đã đặt trước đó, sắp xếp mới nhất lên trên
+# Bước 19: Người dùng nhận thông báo lịch đã đặt
+# Hiển thị dữ liệu lịch sử (dữ liệu đã lưu trước đó)
+@login_required
+def appointment_history(request):
+    appointments = Appointment_1.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'appointment_history.html', {'appointments': appointments})
+
+
+from django.http import JsonResponse
+from django.utils.dateparse import parse_date, parse_time
+from datetime import datetime
+from .models import Doctor_1, Appointment_1, DoctorSchedule
+# Xử lý yêu cầu lấy danh sách bác sĩ còn lịch trống theo ngày giờ được chọn.
+# Bước sequence tương ứng:
+# Bước 9-11: Người dùng chọn ngày giờ khám
+# Server kiểm tra lịch làm việc bác sĩ và lịch đã đặt (lọc bác sĩ trống)
+# Trả về danh sách bác sĩ còn trống
+def get_available_doctors(request):
+    date_str = request.GET.get("date")
+    time_str = request.GET.get("time")
+
+    if not date_str or not time_str:
+        return JsonResponse({"error": "Missing date or time"}, status=400)
+
+    try:
+        appointment_date = parse_date(date_str) 
+        appointment_time = parse_time(time_str)
+    except Exception:
+        return JsonResponse({"error": "Invalid date or time format"}, status=400)
+
+    if not appointment_date or not appointment_time:
+        return JsonResponse({"error": "Invalid date or time"}, status=400)
+
+    # Lấy ngày trong tuần (Thứ 2 đến chủ nhật)
+    day_of_week = appointment_date.weekday()
+
+    # Tìm bác sĩ có lịch làm việc phù hợp
+    working_doctors = Doctor_1.objects.filter(
+        schedules__day_of_week=day_of_week,
+        schedules__start_time__lte=appointment_time,
+        schedules__end_time__gte=appointment_time
+    ).distinct()
+
+    # Tìm bác sĩ đã bị đặt lịch tại thời điểm đó
+    booked_doctors = Appointment_1.objects.filter(
+        appointment_date=appointment_date,
+        appointment_time=appointment_time
+    ).values_list('doctor_id', flat=True)
+
+    # Loại bỏ bác sĩ đã bị đặt lịch
+    available_doctors = working_doctors.exclude(id__in=booked_doctors)
+
+    data = [{"id": doctor.id, "name": str(doctor)} for doctor in available_doctors]
+    return JsonResponse(data, safe=False)
+
 
 @login_required
 def report(request):
