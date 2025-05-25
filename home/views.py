@@ -365,3 +365,6 @@ def mark_as_completed(request, reminder_id):
     reminder.save()
     messages.success(request, "Đã đánh dấu nhắc nhở là hoàn thành.")
     return redirect('reminder_history')  # đổi thành tên url bạn dùng để xem lịch sử
+
+def report(request):
+    return render(request, 'report.html')
