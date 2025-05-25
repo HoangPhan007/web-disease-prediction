@@ -1,10 +1,25 @@
 # from turtle import pd
 import pandas as pd
-
+from django.utils import timezone
+import json
 from django.contrib.auth.models import User
 
 from django.db import models
 
+from django.db import models
+from django.contrib.auth.models import User
+class userHistory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    test_type = models.CharField(max_length = 120)
+    symptoms = models.CharField(max_length = 500)
+    result = models.CharField(max_length = 120)
+    date = models.DateField(default=timezone.now)
+
+    def set_symptoms(self, symptoms_list):
+        self.symptoms = json.dumps(symptoms_list)
+
+    def get_symptoms(self):
+        return json.loads(self.symptoms)
 
 from django.db import models
 from django.contrib.auth.models import User

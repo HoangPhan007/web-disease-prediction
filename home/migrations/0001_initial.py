@@ -103,4 +103,15 @@ class Migration(migrations.Migration):
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),
+        migrations.CreateModel(
+            name="userHistory",
+            fields=[
+                ("id",models.BigAutoField(auto_created=True,primary_key=True,serialize=False,verbose_name="ID")),
+                ("test_type", models.CharField(max_length=120)),
+                ("symptoms", models.CharField(max_length=500)),
+                ("result", models.CharField(max_length=120)),
+                ("date", models.DateField(default=django.utils.timezone.now)),
+                ("user",models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,to=settings.AUTH_USER_MODEL)),
+            ],
+        ),
     ]
